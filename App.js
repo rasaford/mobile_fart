@@ -1,12 +1,44 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Dimensions, Text, View } from 'react-native';
 // import { Accelerometer } from 'react-native-sensors';
-import {Accelerometer} from 'expo';
+import { Accelerometer } from 'expo';
+import Svg, {
+  Circle,
+  Ellipse,
+  G,
+  TSpan,
+  TextPath,
+  Path,
+  Polygon,
+  Polyline,
+  Line,
+  Rect,
+  Use,
+  Image,
+  Symbol,
+  Defs,
+  LinearGradient,
+  RadialGradient,
+  Stop,
+  ClipPath,
+  Pattern,
+  Mask
+} from 'react-native-svg';
+
+/* Use this if you are using Expo
+import { Svg } from 'expo';
+const { Circle, Rect } = Svg;
+*/
+const { width, height } = Dimensions.get('window');
 
 export default class AccelerometerSensor extends React.Component {
-  state = {
-    accelerometerData: {},
+  constructor() {
+    super();
+    Accelerometer.setUpdateInterval(10);
   }
+  state = {
+    accelerometerData: {}
+  };
 
   componentDidMount() {
     this._toggle();
@@ -22,56 +54,110 @@ export default class AccelerometerSensor extends React.Component {
     } else {
       this._subscribe();
     }
-  }
-
-  _slow = () => {
-    Accelerometer.setUpdateInterval(1000); 
-  }
-
-  _fast = () => {
-    Accelerometer.setUpdateInterval(16);
-  }
+  };
 
   _subscribe = () => {
     this._subscription = Accelerometer.addListener(accelerometerData => {
       this.setState({ accelerometerData });
     });
-  }
+  };
 
   _unsubscribe = () => {
     this._subscription && this._subscription.remove();
     this._subscription = null;
-  }
+  };
 
   render() {
     let { x, y, z } = this.state.accelerometerData;
-
+    // console.log(this.state);
     return (
-      <View style={styles.sensor}>
-        <Text>Accelerometer:</Text>
-        <Text>x: {round(x)} y: {round(y)} z: {round(z)}</Text>
-
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity onPress={this._toggle} style={styles.button}>
-            <Text>Toggle</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={this._slow} style={[styles.button, styles.middleButton]}>
-            <Text>Slow</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={this._fast} style={styles.button}>
-            <Text>Fast</Text>
-          </TouchableOpacity>
+      <React.Fragment>
+        <View style={styles.sensor}>
+          <Text>Accelerometer:</Text>
+          <Text>
+            x: {round(x)} y: {round(y)} z: {round(z)}
+          </Text>
         </View>
-      </View>
+        <Labyrinth2 x={round(x)} y={round(y)} z={round(z)} />
+      </React.Fragment>
     );
   }
 }
+const bounds = {
+  maxX: 100,
+  maxY: 100
+};
+var c = {
+  radius: 10,
+  acc: {
+    x: 0,
+    y: 0
+  },
+  vel: {
+    x: 0,
+    y: 0
+  },
+  pos: {
+    x: 50,
+    y: 50
+  }
+};
+const Labyrinth2 = props => {
+  const delay = 0.2;
+  c.acc.x = props.x * delay;
+  c.acc.y = props.y * -delay;
+  c.vel.x += c.acc.x;
+  c.vel.y += c.acc.y;
+
+  const drag = 0.02;
+  c.vel.x *= 1 - drag;
+  c.vel.y *= 1 - drag;
+
+  const bounce = 0.6;
+  if (c.pos.x - c.radius <= 0) {
+    c.pos.x = c.radius;
+    c.vel.x *= -1 * bounce;
+  }
+  if (c.pos.x + c.radius >= bounds.maxX) {
+    c.pos.x = bounds.maxX - c.radius;
+    c.vel.x *= -1 * bounce;
+  }
+  if (c.pos.y - c.radius <= 0) {
+    c.pos.y = c.radius;
+    c.vel.y *= -1 * bounce;
+  }
+  if (c.pos.y + c.radius >= bounds.maxY) {
+    c.pos.y = bounds.maxY - c.radius;
+    c.vel.y *= -1 * bounce;
+  }
+
+  c.pos.x += c.vel.x;
+  c.pos.y += c.vel.y;
+
+  // console.log(c);
+  let circle = <Circle cx={c.pos.x} cy={c.pos.y} r={c.radius} fill="black" />;
+  return (
+    <View
+      style={[
+        StyleSheet.absoluteFill,
+        { alignItems: 'top-right', justifyContent: 'center' }
+      ]}
+    >
+      <Svg
+        height={height}
+        width={width}
+        viewBox={'0 0 ' + bounds.maxX + ' ' + bounds.maxY}
+      >
+        {circle}
+      </Svg>
+    </View>
+  );
+};
 
 function round(n) {
   if (!n) {
     return 0;
   }
-
   return Math.floor(n * 100) / 100;
 }
 
@@ -82,22 +168,22 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: 'row',
     alignItems: 'stretch',
-    marginTop: 15,
+    marginTop: 15
   },
   button: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#eee',
-    padding: 10,
+    padding: 10
   },
   middleButton: {
     borderLeftWidth: 1,
     borderRightWidth: 1,
-    borderColor: '#ccc',
+    borderColor: '#ccc'
   },
   sensor: {
     marginTop: 15,
-    paddingHorizontal: 10,
-  },
+    paddingHorizontal: 10
+  }
 });
