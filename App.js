@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Dimensions, Text, View } from 'react-native';
 // import { Accelerometer } from 'react-native-sensors';
-import { Accelerometer } from 'expo';
+import { ScreenOrientation, Accelerometer } from 'expo';
 import Svg, {
   Circle,
   Ellipse,
@@ -24,6 +24,7 @@ import Svg, {
   Pattern,
   Mask
 } from 'react-native-svg';
+// import Matter from 'matter-js'
 
 /* Use this if you are using Expo
 import { Svg } from 'expo';
@@ -35,6 +36,7 @@ export default class AccelerometerSensor extends React.Component {
   constructor() {
     super();
     Accelerometer.setUpdateInterval(10);
+    ScreenOrientation.allowAsync(ScreenOrientation.Orientation.PORTRAIT_UP);
   }
   state = {
     accelerometerData: {}
@@ -84,11 +86,11 @@ export default class AccelerometerSensor extends React.Component {
   }
 }
 const bounds = {
-  maxX: 100,
-  maxY: 100
+  maxX: width,
+  maxY: height
 };
 var c = {
-  radius: 10,
+  radius: 20,
   acc: {
     x: 0,
     y: 0
@@ -98,18 +100,18 @@ var c = {
     y: 0
   },
   pos: {
-    x: 50,
-    y: 50
+    x: width / 2,
+    y: height / 2
   }
 };
 const Labyrinth2 = props => {
-  const delay = 0.2;
+  const delay = 0.4;
   c.acc.x = props.x * delay;
   c.acc.y = props.y * -delay;
   c.vel.x += c.acc.x;
   c.vel.y += c.acc.y;
 
-  const drag = 0.02;
+  const drag = 0.01;
   c.vel.x *= 1 - drag;
   c.vel.y *= 1 - drag;
 
@@ -134,8 +136,8 @@ const Labyrinth2 = props => {
   c.pos.x += c.vel.x;
   c.pos.y += c.vel.y;
 
-  // console.log(c);
-  let circle = <Circle cx={c.pos.x} cy={c.pos.y} r={c.radius} fill="black" />;
+  let circle = <Circle cx={c.pos.x} cy={c.pos.y} r={c.radius} fill="white" />;
+  let str = '0 0 ' + bounds.maxX + ' ' + bounds.maxY;
   return (
     <View
       style={[
@@ -143,11 +145,8 @@ const Labyrinth2 = props => {
         { alignItems: 'top-right', justifyContent: 'center' }
       ]}
     >
-      <Svg
-        height={height}
-        width={width}
-        viewBox={'0 0 ' + bounds.maxX + ' ' + bounds.maxY}
-      >
+      <Svg height={height} width={width} viewBox={str}>
+        <Rect x="0" y="0" width={width} height={height} fill="black" />
         {circle}
       </Svg>
     </View>
@@ -185,5 +184,10 @@ const styles = StyleSheet.create({
   sensor: {
     marginTop: 15,
     paddingHorizontal: 10
+  },
+  text: {
+    color: 'white',
+    // fontWeight: '200',
+    zIndex: 100
   }
 });
